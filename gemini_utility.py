@@ -3,6 +3,7 @@ import json
 import google.generativeai as genai
 from PIL import Image
 import io
+from google.generativeai.types import content_types
 
 # Get current working directory
 working_directory = os.path.dirname(os.path.abspath(__file__))
@@ -27,22 +28,24 @@ def load_gemini():
     return genai.GenerativeModel('gemini-1.5-pro-latest')
 
 # Load Gemini Vision model
-def load_geminiimage(prompt, image):
-    if isinstance(image, Image.Image):
-        buffered = io.BytesIO()
-        image.save(buffered, format="PNG")
-        buffered.seek(0)
-        image_bytes = buffered.read()
-    else:
-        raise ValueError("Expected PIL Image.")
 
+
+def load_geminiimage(prompt, image):
+    if not isinstance(image, Image.Image):
+        raise ValueError("Expected a PIL Image.")
+
+    # Directly pass the PIL image and prompt
     vision_model = genai.GenerativeModel('gemini-1.5-flash')
-    response = vision_model.generate_content([prompt, image_bytes])
+
+    # Generate content using Gemini Vision
+    response = vision_model.generate_content([prompt, image])
+
     return response.text
+
 
 # Load embedding model
 def embedding_model(input_text):
-    embedding_model_id = 'embedding-001'
+    embedding_model_id = 'models/embedding-001'
     embedding = genai.embed_content(
         model=embedding_model_id,
         content=input_text,
